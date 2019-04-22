@@ -2,12 +2,14 @@
 
 Package
 
-github.com/marcusolsson/tui-go
 github.com/gorilla/websocket
+
+github.com/marcusolsson/tui-go
 
 server
 
-go run server.go
+
+go run server.go 
 
 client
 
