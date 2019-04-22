@@ -52,7 +52,7 @@ func main() {
 
 	ui, input, history := drawChatView()
 
-	go sendMessage(conn, input)
+	go sendMessage(conn, input, ui)
 	go receiveMessage(conn, ui, history)
 
 	ui.SetKeybinding("Esc", func() { ui.Quit() })
@@ -62,12 +62,13 @@ func main() {
 
 }
 
-func sendMessage(conn *websocket.Conn, input *tui.Entry) {
+func sendMessage(conn *websocket.Conn, input *tui.Entry, ui tui.UI) {
 
 	input.OnSubmit(func(e *tui.Entry) {
 		p := post{Username: userName, Time: time.Now().Format("2006-01-02 15:04:05"), Message: e.Text()}
 		err := conn.WriteJSON(p)
 		if err != nil {
+			ui.Quit()
 			fmt.Println("json err:", err)
 			return
 		}
