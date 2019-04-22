@@ -88,7 +88,6 @@ func (c *Client) read() {
 	for {
 		var p post
 		err := c.socket.ReadJSON(&p)
-		// _, message, err := c.socket.ReadMessage()
 		if err != nil {
 			manager.unregister <- c
 			c.socket.Close()
@@ -96,7 +95,6 @@ func (c *Client) read() {
 			break
 		}
 		jsonMessage, _ := json.Marshal(&post{Username: p.Username, Message: p.Message, Time: p.Time})
-
 		manager.broadcast <- jsonMessage
 	}
 }
@@ -113,7 +111,6 @@ func (c *Client) write() {
 				c.socket.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-
 			c.socket.WriteMessage(websocket.TextMessage, message)
 		}
 	}
@@ -141,7 +138,6 @@ func wsPage(res http.ResponseWriter, req *http.Request) {
 	}
 
 	client := &Client{socket: conn, send: make(chan []byte), username: req.Header.Get("username")}
-
 	manager.register <- client
 
 	go client.read()
