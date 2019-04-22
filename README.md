@@ -1,16 +1,16 @@
 # WebSocketSample
 
 Package
+```
+go get -u github.com/gorilla/websocket
 
-github.com/gorilla/websocket
-
-github.com/marcusolsson/tui-go
-
+go get -u github.com/marcusolsson/tui-go
+```
 server
-
-
+```
 go run server.go 
-
+```
 client
-
+```
 go run client.go
+```
