@@ -21,23 +21,29 @@ type post struct {
 }
 
 var posts = []post{post{Username: "info", Message: "use 'esc' to leave room ", Time: ""}}
-var userName = ""
 
-var addr = flag.String("addr", "localhost:12345", "http service address")
+var userName string
 
 func main() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Print("Enter your name: ")
 	scanner.Scan()
-	text := scanner.Text()
-	userName = text
+	name := scanner.Text()
+	userName = name
+	fmt.Print("Entet ip:")
+	scanner.Scan()
+	ip := scanner.Text()
+	if ip == "" {
+		ip = "12345"
+	}
+	var addr = flag.String("addr", fmt.Sprintf(":%v", ip), "http service address")
 
 	u := url.URL{Scheme: "ws", Host: *addr, Path: "/ws"}
 	var dialer *websocket.Dialer
 
 	h := http.Header{}
-	h.Set("username", text)
+	h.Set("username", name)
 	conn, _, err := dialer.Dial(u.String(), h)
 	if err != nil {
 		fmt.Println(err)

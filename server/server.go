@@ -1,13 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/websocket"
-	uuid "github.com/satori/go.uuid"
 )
 
 type ClientManager struct {
@@ -18,7 +19,6 @@ type ClientManager struct {
 }
 
 type Client struct {
-	id       string
 	socket   *websocket.Conn
 	send     chan []byte
 	username string
@@ -95,7 +95,6 @@ func (c *Client) read() {
 			fmt.Println("err", err)
 			break
 		}
-		fmt.Println(p)
 		jsonMessage, _ := json.Marshal(&post{Username: p.Username, Message: p.Message, Time: p.Time})
 
 		manager.broadcast <- jsonMessage
@@ -121,10 +120,17 @@ func (c *Client) write() {
 }
 
 func main() {
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Print("ip:")
+	scanner.Scan()
+	ip := scanner.Text()
+	if ip == "" {
+		ip = "12345"
+	}
 	fmt.Println("Starting application...")
 	go manager.start()
 	http.HandleFunc("/ws", wsPage)
-	http.ListenAndServe(":12345", nil)
+	http.ListenAndServe(fmt.Sprintf(":%v", ip), nil)
 }
 
 func wsPage(res http.ResponseWriter, req *http.Request) {
@@ -133,8 +139,8 @@ func wsPage(res http.ResponseWriter, req *http.Request) {
 		http.NotFound(res, req)
 		return
 	}
-	u, _ := uuid.NewV4()
-	client := &Client{id: u.String(), socket: conn, send: make(chan []byte), username: req.Header.Get("username")}
+
+	client := &Client{socket: conn, send: make(chan []byte), username: req.Header.Get("username")}
 
 	manager.register <- client
 
