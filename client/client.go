@@ -35,10 +35,10 @@ func main() {
 	userName = createScanner("Enter your name: ")
 	ip := createScanner("Entet ip: ")
 	if ip == "" {
-		ip = "12345"
+		ip = "127.0.0.1:12345"
 	}
 
-	var addr = flag.String("addr", fmt.Sprintf(":%v", ip), "http service address")
+	var addr = flag.String("addr", ip, "http service address")
 	u := url.URL{Scheme: "ws", Host: *addr, Path: "/ws"}
 	h := http.Header{}
 	h.Set("username", userName)

@@ -122,12 +122,17 @@ func main() {
 	scanner.Scan()
 	ip := scanner.Text()
 	if ip == "" {
-		ip = "12345"
+		ip = "127.0.0.1:12345"
 	}
 	fmt.Println("Starting application...")
+	fmt.Println(ip)
 	go manager.start()
 	http.HandleFunc("/ws", wsPage)
-	http.ListenAndServe(fmt.Sprintf(":%v", ip), nil)
+	err := http.ListenAndServe(ip, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 }
 
 func wsPage(res http.ResponseWriter, req *http.Request) {
