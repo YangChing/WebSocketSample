@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// ClientManager is used to manager client
 type ClientManager struct {
 	clients    map[*Client]bool
 	broadcast  chan []byte
@@ -18,17 +19,26 @@ type ClientManager struct {
 	unregister chan *Client
 }
 
+// Client
 type Client struct {
 	socket   *websocket.Conn
 	send     chan []byte
 	username string
 }
 
+// Message
 type Message struct {
 	Sender    string `json:"sender,omitempty"`
 	Recipient string `json:"recipient,omitempty"`
 	Content   string `json:"content,omitempty"`
-	username  string `json:"username,omitempty"`
+	Username  string `json:"username,omitempty"`
+}
+
+// Post
+type Post struct {
+	Username string `json:"username,omitempty"`
+	Message  string `json:"message"`
+	Time     string `json:"time"`
 }
 
 var manager = ClientManager{
@@ -38,24 +48,18 @@ var manager = ClientManager{
 	clients:    make(map[*Client]bool),
 }
 
-type post struct {
-	Username string `json:"username,omitempty"`
-	Message  string `json:"message"`
-	Time     string `json:"time"`
-}
-
 func (manager *ClientManager) start() {
 	for {
 		select {
 		case conn := <-manager.register:
 			manager.clients[conn] = true
-			jsonMessage, _ := json.Marshal(&post{Username: conn.username, Time: time.Now().Format("2006-01-02 15:04:05"), Message: "entry room"})
+			jsonMessage, _ := json.Marshal(&Post{Username: conn.username, Time: time.Now().Format("2006-01-02 15:04:05"), Message: "entry room"})
 			manager.send(jsonMessage, conn)
 		case conn := <-manager.unregister:
 			if _, ok := manager.clients[conn]; ok {
 				close(conn.send)
 				delete(manager.clients, conn)
-				jsonMessage, _ := json.Marshal(&post{Username: conn.username, Time: time.Now().Format("2006-01-02 15:04:05"), Message: "leave room"})
+				jsonMessage, _ := json.Marshal(&Post{Username: conn.username, Time: time.Now().Format("2006-01-02 15:04:05"), Message: "leave room"})
 				manager.send(jsonMessage, conn)
 			}
 		case message := <-manager.broadcast:
@@ -86,7 +90,7 @@ func (c *Client) read() {
 	}()
 
 	for {
-		var p post
+		var p Post
 		err := c.socket.ReadJSON(&p)
 		if err != nil {
 			manager.unregister <- c
@@ -94,7 +98,7 @@ func (c *Client) read() {
 			fmt.Println("err", err)
 			break
 		}
-		jsonMessage, _ := json.Marshal(&post{Username: p.Username, Message: p.Message, Time: p.Time})
+		jsonMessage, _ := json.Marshal(&Post{Username: p.Username, Message: p.Message, Time: p.Time})
 		manager.broadcast <- jsonMessage
 	}
 }
